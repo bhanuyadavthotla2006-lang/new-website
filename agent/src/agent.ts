@@ -5,7 +5,7 @@ Flow:
 - Uses PvRecorder (pvrecorder-node) to capture microphone PCM frames.
 - Uses Porcupine (porcupine-node) for wake-word detection (requires a keyword .ppn file and Picovoice access key).
 - When wake-word is detected, it buffers audio frames for RECORD_AFTER_WAKE seconds, writes WAV data, and sends the audio to OpenAI Whisper transcription API.
-- Forwards the transcribed text to your existing JARVIS server (/api/chat) and speaks the reply using PowerShell TTS on Windows.
+- Forwards the transcribed text to your JARVIS server (/api/chat) and speaks the reply using PowerShell TTS on Windows.
 
 Notes & requirements:
 - You must provide a Picovoice access key and a compiled keyword file (.ppn) for the wake-word. Picovoice provides tooling to generate keywords.
@@ -21,12 +21,12 @@ import { Porcupine } from '@picovoice/porcupine-node'
 import { PvRecorder } from '@picovoice/pvrecorder-node'
 import fs from 'fs'
 import path from 'path'
-import { Writable } from 'stream'
 import { WaveFile } from 'wav'
 import fetch from 'node-fetch'
 import FormData from 'form-data'
 import { exec } from 'child_process'
 import sqlite3 from 'sqlite3'
+import { startLocalServer } from './localServer'
 
 const PICOVOICE_ACCESS_KEY = process.env.PICOVOICE_ACCESS_KEY || ''
 const PORCOVOICE_KEYWORD_PATH = process.env.PORCOVOICE_KEYWORD_PATH || ''
@@ -144,7 +144,14 @@ async function runAgent() {
   let recordSamples: Int16Array[] = []
   let recordingTimeout: NodeJS.Timeout | null = null
 
-  function finishRecordingAndProcess() {
+  function startManualRecording() {
+    if (isRecording) return
+    isRecording = true
+    recordSamples = []
+    recordingTimeout = setTimeout(() => finishRecordingAndProcess(), RECORD_AFTER_WAKE * 1000)
+  }
+
+  async function finishRecordingAndProcess() {
     if (!isRecording) return
     isRecording = false
     if (recordingTimeout) clearTimeout(recordingTimeout)
@@ -181,6 +188,12 @@ async function runAgent() {
       }
     })()
   }
+
+  // Start local control server and allow manual recording trigger
+  startLocalServer(async () => {
+    console.log('Manual recording triggered via local API')
+    startManualRecording()
+  })
 
   // Main loop: read frames and run porcupine on them
   const recorderReadLoop = async () => {

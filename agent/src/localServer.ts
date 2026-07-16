@@ -8,7 +8,9 @@ dotenv.config({ path: './.env' })
 const AGENT_PORT = Number(process.env.AGENT_PORT) || 41234
 const AGENT_TOKEN = process.env.AGENT_TOKEN || ''
 
-export function startLocalServer() {
+type TriggerRecordingFn = (() => Promise<void>) | undefined
+
+export function startLocalServer(triggerRecording?: TriggerRecordingFn) {
   const app = express()
   app.use(bodyParser.json())
 
@@ -27,6 +29,18 @@ export function startLocalServer() {
   app.post('/command', async (req, res) => {
     const { action, args } = req.body
     if (!action) return res.status(400).json({ error: 'action required' })
+
+    // Special internal action to trigger a manual recording (useful for testing)
+    if (action === 'record') {
+      if (!triggerRecording) return res.status(501).json({ error: 'recording not supported by agent' })
+      try {
+        await triggerRecording()
+        return res.json({ ok: true, message: 'manual recording triggered' })
+      } catch (err: any) {
+        return res.status(500).json({ ok: false, message: String(err?.message || err) })
+      }
+    }
+
     const result = await executeCommand(action, args)
     res.json(result)
   })
