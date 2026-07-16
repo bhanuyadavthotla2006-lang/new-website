@@ -1,8 +1,0 @@
-{
-  "name": "jarvis-ai-root",
-  "private": true,
-  "workspaces": [
-    "client",
-    "server"
-  ]
-}
