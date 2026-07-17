@@ -1,0 +1,40 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Start Server",
+      "type": "shell",
+      "command": "npm run dev",
+      "problemMatcher": [],
+      "group": "none",
+      "presentation": { "panel": "dedicated" },
+      "options": { "cwd": "${workspaceFolder}/server" }
+    },
+    {
+      "label": "Start Agent",
+      "type": "shell",
+      "command": "npm run start",
+      "problemMatcher": [],
+      "group": "none",
+      "presentation": { "panel": "dedicated" },
+      "options": { "cwd": "${workspaceFolder}/agent" }
+    },
+    {
+      "label": "Start Client",
+      "type": "shell",
+      "command": "npm run dev",
+      "problemMatcher": [],
+      "group": "none",
+      "presentation": { "panel": "dedicated" },
+      "options": { "cwd": "${workspaceFolder}/client" }
+    },
+    {
+      "label": "Start All (Server + Agent + Client)",
+      "dependsOn": ["Start Server", "Start Agent", "Start Client"],
+      "dependsOrder": "parallel",
+      "type": "shell",
+      "problemMatcher": [],
+      "presentation": { "panel": "shared" }
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Debug Agent (ts-node)",
+      "type": "node",
+      "request": "launch",
+      "program": "${workspaceFolder}/agent/src/agent.ts",
+      "cwd": "${workspaceFolder}/agent",
+      "runtimeArgs": [
+        "-r",
+        "ts-node/register"
+      ],
+      "env": {
+        "TS_NODE_PROJECT": "${workspaceFolder}/agent/tsconfig.json"
+      },
+      "console": "integratedTerminal",
+      "sourceMaps": true
+    }
+  ]
+}
